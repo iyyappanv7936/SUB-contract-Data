@@ -1,0 +1,2607 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#1f4e78" />
+  <title>Ocean Lifespaces | Workers Registration Portal</title>
+
+  <!-- ExcelJS (CDN) - used only for the "Download Excel" button -->
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+
+  <style>
+    /* ---------- Colours and basic setup ---------- */
+    :root {
+      --blue: #1f4e78;
+      --navy: #0c0569;
+      --pale: #ccddf1;
+      --green: #198754;
+      --red: #dc3545;
+      --purple: #6f2ce0;
+      --muted: #64748b;
+      --line: #dce3eb;
+      --bg: #f1f4f8;
+      --shadow: 0 8px 28px #152a4412;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html {
+      scroll-behavior: smooth
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: #222;
+      line-height: 1.45
+    }
+
+    body.admin-mode {
+      overflow: hidden
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit
+    }
+
+    button {
+      padding: 11px 15px;
+      border: 0;
+      border-radius: 7px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: filter .15s, transform .15s
+    }
+
+    button:hover:not(:disabled) {
+      filter: brightness(.95)
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(1px)
+    }
+
+    button:disabled {
+      opacity: .58;
+      cursor: wait
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #c8d1dc;
+      border-radius: 7px;
+      background: #fff;
+      color: #17202a;
+      outline: none
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: #4c8bc3;
+      box-shadow: 0 0 0 3px #1f4e7818
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical
+    }
+
+    label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 7px
+    }
+
+    .required {
+      color: #c62828
+    }
+
+    .hint,
+    .muted {
+      color: var(--muted);
+      font-size: 12px
+    }
+
+    .hidden {
+      display: none !important
+    }
+
+    /* ---------- Header and form card ---------- */
+    .header {
+      background: var(--pale);
+      padding: 16px;
+      margin: 10px;
+      color: var(--navy);
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      min-height: 100px;
+      border-radius: 10px
+    }
+
+    .header img {
+      max-width: 110px;
+      max-height: 85px;
+      object-fit: contain
+    }
+
+    .head {
+      text-align: center;
+      flex: 1
+    }
+
+    .header h1 {
+      font-size: clamp(20px, 3vw, 28px);
+      margin: 0 0 8px
+    }
+
+    .header h3 {
+      margin: 0;
+      font-size: 18px
+    }
+
+    .container {
+      width: 95%;
+      max-width: 900px;
+      margin: 28px auto
+    }
+
+    .card {
+      background: #fff;
+      padding: 28px;
+      border-radius: 12px;
+      box-shadow: var(--shadow)
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 13px;
+      color: #656de0;
+      font-weight: bold;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 14px;
+      margin-bottom: 22px
+    }
+
+    .form-group {
+      margin-bottom: 18px
+    }
+
+    .security {
+      text-align: center;
+      position: relative;
+      margin-bottom: 24px;
+      min-height: 65px
+    }
+
+    .security img {
+      max-width: 250px;
+      max-height: 120px;
+      object-fit: contain
+    }
+
+    .admin-link {
+      position: absolute;
+      left: 0;
+      top: 0
+    }
+
+    /* ---------- Buttons ---------- */
+    .primary,
+    .camera-btn,
+    .admin-link button {
+      background: var(--blue);
+      color: #fff
+    }
+
+    .success-btn,
+    .file-btn,
+    .export-btn,
+    .capture-btn {
+      background: var(--green);
+      color: #fff
+    }
+
+    .clear-btn,
+    .admin-login-cancel,
+    .secondary {
+      background: #e5e7eb;
+      color: #202938
+    }
+
+    .danger,
+    .logout-btn,
+    .close-camera-btn,
+    .delete-btn {
+      background: var(--red);
+      color: #fff
+    }
+
+    .purple {
+      background: var(--purple);
+      color: #fff
+    }
+
+    .buttons,
+    .camera-buttons,
+    .camera-actions,
+    .admin-login-buttons,
+    .toolbar,
+    .filter-row,
+    .pagination,
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center
+    }
+
+    .submit-btn {
+      flex: 1
+    }
+
+    .small-btn {
+      padding: 7px 10px;
+      font-size: 12px
+    }
+
+    /* ---------- Image previews, messages ---------- */
+    .image-preview {
+      margin-top: 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      flex-wrap: wrap
+    }
+
+    .image-preview img {
+      width: 160px;
+      height: 140px;
+      object-fit: contain;
+      border: 1px solid #ddd;
+      border-radius: 7px;
+      background: #fafafa;
+      cursor: zoom-in
+    }
+
+    .message {
+      display: none;
+      padding: 13px;
+      margin-top: 18px;
+      border-radius: 7px;
+      text-align: center
+    }
+
+    .message.success {
+      display: block;
+      background: #d4edda;
+      color: #155724
+    }
+
+    .message.error {
+      display: block;
+      background: #fdecec;
+      color: #b42318
+    }
+
+    .login-card {
+      max-width: 450px;
+      margin: 35px auto
+    }
+
+    .login-card h2 {
+      color: var(--blue)
+    }
+
+    .login-error {
+      display: none;
+      color: #b42318;
+      background: #fdecec;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 14px
+    }
+
+    .file-input {
+      display: none
+    }
+
+    .field-hint {
+      font-size: 12px;
+      color: #667085;
+      margin-top: 5px
+    }
+
+    .company-footer {
+      text-align: center;
+      margin-top: 20px
+    }
+
+    .company-footer img {
+      max-width: 880px;
+      max-height: 100px;
+      object-fit: contain
+    }
+
+    .privacy-note {
+      font-size: 12px;
+      color: #687385;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 7px;
+      padding: 10px;
+      margin-bottom: 16px
+    }
+
+    .badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      background: #e9f2fa;
+      color: var(--blue)
+    }
+
+    /* ---------- Admin panel ---------- */
+    #adminPanel {
+      display: none;
+      position: fixed;
+      inset: 0;
+      padding: 18px;
+      overflow: auto;
+      background: #f5f7fa;
+      z-index: 9999
+    }
+
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: -18px;
+      background: #fff;
+      padding: 12px 0;
+      border-bottom: 1px solid #ddd;
+      z-index: 10
+    }
+
+    .admin-header h2 {
+      color: var(--blue);
+      margin: 0
+    }
+
+    .admin-title {
+      display: flex;
+      gap: 10px;
+      align-items: center
+    }
+
+    .admin-content {
+      max-width: 1800px;
+      margin: 0 auto
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(150px, 1fr));
+      gap: 14px;
+      margin: 18px 0
+    }
+
+    .stat-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 18px;
+      box-shadow: 0 2px 10px #00000006
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--blue);
+      margin-top: 5px
+    }
+
+    .dashboard-lists {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 18px
+    }
+
+    .mini-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px
+    }
+
+    .mini-card h3 {
+      margin: 0 0 10px;
+      font-size: 15px;
+      color: var(--blue)
+    }
+
+    .mini-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 130px;
+      overflow: auto
+    }
+
+    .mini-list div {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 13px;
+      border-bottom: 1px solid #f0f2f5;
+      padding-bottom: 4px
+    }
+
+    .admin-tools {
+      background: #fff;
+      border: 1px solid var(--line);
+      padding: 14px;
+      border-radius: 10px;
+      margin: 15px 0
+    }
+
+    .filter-row>* {
+      flex: 1;
+      min-width: 150px
+    }
+
+    .filter-row .search-field {
+      flex: 2;
+      min-width: 230px
+    }
+
+    .toolbar {
+      justify-content: space-between;
+      margin-bottom: 12px
+    }
+
+    .toolbar-left,
+    .toolbar-right {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center
+    }
+
+    .table-container {
+      overflow: auto;
+      max-height: calc(100vh - 440px);
+      min-height: 220px;
+      border: 1px solid #d5dce5;
+      background: #fff;
+      border-radius: 9px;
+      margin-top: 12px
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1550px
+    }
+
+    th,
+    td {
+      padding: 9px;
+      border: 1px solid #e1e6ed;
+      text-align: left;
+      vertical-align: middle;
+      white-space: nowrap;
+      font-size: 13px
+    }
+
+    th {
+      background: var(--blue);
+      color: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 2
+    }
+
+    tbody tr:nth-child(even) {
+      background: #f8fafc
+    }
+
+    tbody tr:hover {
+      background: #edf5fc
+    }
+
+    .worker-image {
+      width: 82px;
+      height: 75px;
+      object-fit: contain;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      cursor: zoom-in;
+      background: #fff
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 5px
+    }
+
+    .row-actions button {
+      padding: 7px 9px;
+      font-size: 12px
+    }
+
+    .no-data {
+      text-align: center;
+      padding: 24px;
+      color: #777
+    }
+
+    .pagination {
+      justify-content: space-between;
+      padding: 12px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-top: 0;
+      border-radius: 0 0 9px 9px
+    }
+
+    .pagination .page-controls {
+      display: flex;
+      gap: 6px;
+      align-items: center
+    }
+
+    .page-size {
+      width: 90px;
+      padding: 8px
+    }
+
+    /* ---------- Pop-ups (camera, image viewer, edit) ---------- */
+    .camera-modal,
+    .image-viewer,
+    .edit-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: #000d;
+      justify-content: center;
+      align-items: center;
+      padding: 15px
+    }
+
+    .camera-box,
+    .edit-box {
+      background: #fff;
+      width: 95%;
+      max-width: 620px;
+      padding: 18px;
+      border-radius: 12px;
+      max-height: 92vh;
+      overflow: auto
+    }
+
+    .camera-box {
+      text-align: center
+    }
+
+    .camera-box video {
+      width: 100%;
+      max-height: 65vh;
+      background: #111;
+      border-radius: 8px
+    }
+
+    .image-viewer {
+      z-index: 20000
+    }
+
+    .image-viewer img {
+      max-width: 95%;
+      max-height: 90%;
+      object-fit: contain
+    }
+
+    .close-viewer {
+      position: absolute;
+      top: 12px;
+      right: 24px;
+      color: #fff;
+      font-size: 38px;
+      cursor: pointer
+    }
+
+    .edit-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px
+    }
+
+    .edit-box h2 {
+      color: var(--blue);
+      margin-top: 0
+    }
+
+    .edit-box .form-group {
+      margin-bottom: 12px
+    }
+
+    .edit-images {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px
+    }
+
+    .edit-image-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px
+    }
+
+    .edit-image-card img {
+      width: 100%;
+      height: 100px;
+      object-fit: contain
+    }
+
+    .toast-region {
+      position: fixed;
+      right: 15px;
+      bottom: 15px;
+      z-index: 30000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-width: min(400px, 90vw)
+    }
+
+    .toast {
+      padding: 12px 15px;
+      background: #17202a;
+      color: #fff;
+      border-radius: 8px;
+      box-shadow: var(--shadow)
+    }
+
+    .toast.error {
+      background: #a61b1b
+    }
+
+    .toast.success {
+      background: #17663a
+    }
+
+    /* ---------- Tablet and mobile ---------- */
+    @media (max-width:950px) {
+      .dashboard-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+      }
+
+      .dashboard-lists {
+        grid-template-columns: 1fr 1fr
+      }
+
+      .table-container {
+        max-height: calc(100vh - 500px)
+      }
+    }
+
+    @media (max-width:600px) {
+      .header {
+        flex-direction: column;
+        text-align: center;
+        margin: 6px;
+        padding: 14px
+      }
+
+      .header img {
+        max-width: 90px
+      }
+
+      .container {
+        width: 96%;
+        margin: 14px auto
+      }
+
+      .card {
+        padding: 17px
+      }
+
+      .admin-link {
+        position: static;
+        margin: 10px 0
+      }
+
+      .security {
+        display: flex;
+        flex-direction: column;
+        align-items: center
+      }
+
+      .buttons,
+      .camera-buttons {
+        flex-direction: column;
+        align-items: stretch
+      }
+
+      .camera-buttons button,
+      .buttons button {
+        width: 100%
+      }
+
+      #adminPanel {
+        padding: 9px
+      }
+
+      .admin-header {
+        align-items: stretch;
+        flex-direction: column;
+        top: -9px
+      }
+
+      .admin-header .camera-actions {
+        display: flex;
+        flex-wrap: wrap
+      }
+
+      .admin-header button {
+        flex: 1
+      }
+
+      .dashboard-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px
+      }
+
+      .stat-card {
+        padding: 12px
+      }
+
+      .stat-value {
+        font-size: 23px
+      }
+
+      .dashboard-lists {
+        grid-template-columns: 1fr
+      }
+
+      .filter-row {
+        display: grid;
+        grid-template-columns: 1fr
+      }
+
+      .filter-row>* {
+        min-width: 0
+      }
+
+      .toolbar {
+        align-items: stretch;
+        flex-direction: column
+      }
+
+      .toolbar-left,
+      .toolbar-right {
+        width: 100%
+      }
+
+      .toolbar button {
+        flex: 1
+      }
+
+      .table-container {
+        max-height: 55vh
+      }
+
+      .pagination {
+        align-items: flex-start;
+        flex-direction: column
+      }
+
+      .edit-grid {
+        grid-template-columns: 1fr
+      }
+
+      .edit-images {
+        grid-template-columns: 1fr
+      }
+
+      .edit-box {
+        padding: 13px
+      }
+
+      .row-actions {
+        flex-direction: column
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ================= HEADER ================= -->
+  <header class="header">
+    <!-- Put "ocean logo.jpg" in the same folder as this file. It hides itself if missing. -->
+    <img alt="Ocean Lifespaces logo" onerror="this.style.display='none'" src="ocean logo.jpg" />
+    <div class="head">
+      <h1>Ocean Lifespaces India Private Limited</h1>
+      <h3>Workers Registration Portal</h3>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- ================= REGISTRATION FORM ================= -->
+    <section class="card" id="formPanel">
+      <div class="section-title">
+        The Workers Register Form is used to maintain a detailed and up-to-date record of workers engaged in the
+        organization.
+      </div>
+      <div class="privacy-note">
+        Please verify all details before submitting. Your details and photos are saved securely to the company records.
+      </div>
+
+      <form id="workerForm" novalidate>
+        <div class="security">
+          <img alt="Security" onerror="this.style.display='none'" src="sec.jpg" />
+          <div class="admin-link">
+            <button onclick="showAdminLogin()" type="button">Admin Login</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="project">Name Of The Project <span class="required">*</span></label>
+          <select id="project" required>
+            <option value="">Choose</option>
+            <option>EY-Global Kochi</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="employeeName">Worker Name <span class="required">*</span></label>
+          <input autocomplete="name" id="employeeName" maxlength="120" placeholder="Enter worker name" required />
+        </div>
+
+        <div class="form-group">
+          <label for="dateOfBirth">Date of Birth <span class="required">*</span></label>
+          <input id="dateOfBirth" required type="date" />
+        </div>
+
+        <div class="form-group">
+          <label for="mobileNumber">Mobile Number <span class="required">*</span></label>
+          <input autocomplete="tel" id="mobileNumber" inputmode="numeric" maxlength="10" pattern="[0-9]{10}"
+            placeholder="10-digit mobile number" required type="tel" />
+        </div>
+
+        <div class="form-group">
+          <label for="emergencyContact">Emergency Contact Number <span class="required">*</span></label>
+          <input id="emergencyContact" inputmode="numeric" maxlength="10" pattern="[0-9]{10}"
+            placeholder="10-digit emergency contact" required type="tel" />
+        </div>
+
+        <div class="form-group">
+          <label for="designation">Designation <span class="required">*</span></label>
+          <select id="designation" required>
+            <option value="">Choose</option>
+            <option>AC Technician</option>
+            <option>Fabricator</option>
+            <option>Assistant Mason</option>
+            <option>Bar Bender</option>
+            <option>Bar Bender-Helper</option>
+            <option>Billing Engineer</option>
+            <option>BMS Technician</option>
+            <option>Bricklayer</option>
+            <option>Cable Pulling Technician</option>
+            <option>Carpenter</option>
+            <option>Carpenter Helper</option>
+            <option>Civil Engineer</option>
+            <option>Civil Supervisor</option>
+            <option>Concrete Mixer Operator</option>
+            <option>Concrete Worker</option>
+            <option>Construction Manager</option>
+            <option>Crane Operator</option>
+            <option>Demolition Worker</option>
+            <option>Document Controller</option>
+            <option>Driver</option>
+            <option>Duct Installer</option>
+            <option>Electrical Engineer</option>
+            <option>Electrical Helper</option>
+            <option>Electrical Supervisor</option>
+            <option>Electrician</option>
+            <option>Electrician Helper</option>
+            <option>ELV Technician</option>
+            <option>Excavator Operator</option>
+            <option>False Ceiling Worker</option>
+            <option>Finishing Helper</option>
+            <option>Fire Alarm Technician</option>
+            <option>Fire Fighting Technician</option>
+            <option>Fitter</option>
+            <option>Flooring Installer</option>
+            <option>Flooring Worker</option>
+            <option>Foreman</option>
+            <option>Forklift Operator</option>
+            <option>Furniture Installer</option>
+            <option>General Construction Worker</option>
+            <option>General Foreman</option>
+            <option>General Helper</option>
+            <option>General Labourer</option>
+            <option>Glass Installer</option>
+            <option>Gypsum Board Installer</option>
+            <option>Helper</option>
+            <option>Housekeeping Helper</option>
+            <option>Housekeeping Staff</option>
+            <option>Housekeeping</option>
+            <option>Housekeeping Supervisor</option>
+            <option>HVAC Technician</option>
+            <option>Interior Carpenter</option>
+            <option>Interior Supervisor</option>
+            <option>JCB Operator</option>
+            <option>Loading and Unloading Worker</option>
+            <option>Machine Operator</option>
+            <option>Mason</option>
+            <option>Mason Helper</option>
+            <option>Material Coordinator</option>
+            <option>Material Handler</option>
+            <option>Mechanical Technician</option>
+            <option>MEP Supervisor</option>
+            <option>Modular Furniture Installer</option>
+            <option>Office Boy</option>
+            <option>Painter</option>
+            <option>Painter Helper</option>
+            <option>Partition Installer</option>
+            <option>Pipe Fitter</option>
+            <option>Planning Engineer</option>
+            <option>Plastering Worker</option>
+            <option>Plumber</option>
+            <option>Plumber Helper</option>
+            <option>Plumbing Helper</option>
+            <option>Plumbing Supervisor</option>
+            <option>Polishing Worker</option>
+            <option>POP Worker</option>
+            <option>Asst-Project Manager</option>
+            <option>Project Manager</option>
+            <option>Pump Operator</option>
+            <option>QA/QC Inspector</option>
+            <option>Quality Engineer</option>
+            <option>Quantity Surveyor</option>
+            <option>Safety Officer</option>
+            <option>Safety Steward</option>
+            <option>Safety Supervisor</option>
+            <option>Scaffolder</option>
+            <option>Scaffolding Helper</option>
+            <option>Security Guard</option>
+            <option>Security Supervisor</option>
+            <option>Shuttering Carpenter</option>
+            <option>Silicone Applicator</option>
+            <option>Site Administrator</option>
+            <option>Site Engineer</option>
+            <option>Site In-Charge</option>
+            <option>Site Supervisor</option>
+            <option>Steel Fixer</option>
+            <option>Storekeeper</option>
+            <option>Storekeeper-Helper</option>
+            <option>Supervisor</option>
+            <option>Surveyor</option>
+            <option>Technician</option>
+            <option>Tile Mason</option>
+            <option>Wallpaper Installer</option>
+            <option>Waterproofing Technician</option>
+            <option>Welder</option>
+            <option>Welder Helper</option>
+            <option>Welding Machine Operator</option>
+            <option>Wireman</option>
+            <option>Other's</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="supervisorContact">Supervisor/Manager Contact Number <span class="required">*</span></label>
+          <input id="supervisorContact" inputmode="numeric" maxlength="10" pattern="[0-9]{10}"
+            placeholder="10-digit supervisor number" required type="tel" />
+        </div>
+
+        <div class="form-group">
+          <label for="contractorAgency">Contractor Agency <span class="required">*</span></label>
+          <select id="contractorAgency" required>
+            <option value="">Choose</option>
+            <option>Arbion Info Services</option>
+            <option>Bushra Interiors</option>
+            <option>Cholo Ram Jaat furniture</option>
+            <option>Dharmendra</option>
+            <option>Hardware Galaxy</option>
+            <option>Henry & Farad Pvt.Ltd</option>
+            <option>Johnson controls</option>
+            <option>Limra</option>
+            <option>Lotus MEP Solution PVT LTD</option>
+            <option>MD Contracting</option>
+            <option>Munu Dev Rabha</option>
+            <option>Pappu Ram</option>
+            <option>Rajesh Contact</option>
+            <option>Royalguardian Security</option>
+            <option>Sree Vignesh</option>
+            <option>Stem Infra Project PVT LTD</option>
+            <option>Syncro Industries</option>
+            <option>Vinayl Installation</option>
+            <option>WGS Bangalore Tech</option>
+            <option>Other's</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="state">State <span class="required">*</span></label>
+          <select id="state" required>
+            <option value="">Choose</option>
+            <option>Andhra Pradesh</option>
+            <option>Arunachal Pradesh</option>
+            <option>Assam</option>
+            <option>Bihar</option>
+            <option>Chhattisgarh</option>
+            <option>Goa</option>
+            <option>Gujarat</option>
+            <option>Haryana</option>
+            <option>Himachal Pradesh</option>
+            <option>Jharkhand</option>
+            <option>Karnataka</option>
+            <option>Kerala</option>
+            <option>Madhya Pradesh</option>
+            <option>Maharashtra</option>
+            <option>Manipur</option>
+            <option>Meghalaya</option>
+            <option>Mizoram</option>
+            <option>Nagaland</option>
+            <option>Odisha</option>
+            <option>Punjab</option>
+            <option>Rajasthan</option>
+            <option>Sikkim</option>
+            <option>Tamil Nadu</option>
+            <option>Telangana</option>
+            <option>Tripura</option>
+            <option>Uttar Pradesh</option>
+            <option>Uttarakhand</option>
+            <option>West Bengal</option>
+            <option>Andaman and Nicobar Islands (UT)</option>
+            <option>Chandigarh (UT)</option>
+            <option>Dadra and Nagar Haveli and Daman and Diu (UT)</option>
+            <option>Delhi (National Capital Territory)</option>
+            <option>Jammu and Kashmir (UT)</option>
+            <option>Ladakh (UT)</option>
+            <option>Lakshadweep (UT)</option>
+            <option>Puducherry (UT)</option>
+            <option>other's</option>
+          </select>
+        </div> 
+
+        <div class="form-group">
+          <label for="aadharAddress">Aadhaar Address <span class="required">*</span></label>
+          <textarea autocomplete="street-address" id="aadharAddress" maxlength="500" placeholder="Enter the address printed on Aadhaar" required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="aadharNumber">Aadhaar Number <span class="required">*</span></label>
+          <input id="aadharNumber" inputmode="numeric" autocomplete="off" maxlength="12" pattern="[0-9]{12}" placeholder="Enter 12-digit Aadhaar number" required type="text" />
+        </div>
+
+      
+        <div class="form-group">
+          <label for="aadharFrontFile">Aadhar Card Front Side <span class="required">*</span></label>
+          <div class="camera-buttons">
+            <button class="camera-btn" onclick="openCamera('aadharFront','environment')" type="button">Take
+              Photo</button>
+            <button class="file-btn" onclick="document.getElementById('aadharFrontFile').click()" type="button">Upload
+              Image </button>
+          </div>
+          <input accept="image/*" class="file-input" id="aadharFrontFile" onchange="selectFile(this,'aadharFront')"
+            type="file" />
+          <input id="aadharFront" type="hidden" />
+          <div class="image-preview" id="aadharFrontPreview"></div>
+          <div class="field-hint">Use a clear image with all card details visible.</div>
+        </div>
+
+        <!-- Aadhaar back -->
+        <div class="form-group">
+          <label for="aadharBackFile">Aadhar Card Back Side <span class="required">*</span></label>
+          <div class="camera-buttons">
+            <button class="camera-btn" onclick="openCamera('aadharBack','environment')" type="button">Take
+              Photo</button>
+            <button class="file-btn" onclick="document.getElementById('aadharBackFile').click()" type="button">Upload
+              Image </button>
+          </div>
+          <input accept="image/*" class="file-input" id="aadharBackFile" onchange="selectFile(this,'aadharBack')"
+            type="file" />
+          <input id="aadharBack" type="hidden" />
+          <div class="image-preview" id="aadharBackPreview"></div>
+        </div>
+
+
+        <div class="form-group">
+          <label for="photoUploadFile">My Photo <span class="required">*</span></label>
+          <div class="camera-buttons">
+            <button class="camera-btn" onclick="openCamera('photoUpload','user')" type="button">Take Photo</button>
+            <button class="file-btn" onclick="document.getElementById('photoUploadFile').click()" type="button">Upload
+              Image </button>
+          </div>
+          <input accept="image/*" class="file-input" id="photoUploadFile" onchange="selectFile(this,'photoUpload')"
+            type="file" />
+          <input id="photoUpload" type="hidden" />
+          <div class="image-preview" id="photoUploadPreview"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="remarks">Remarks</label>
+          <textarea id="remarks" maxlength="1000" placeholder="Enter remarks"></textarea>
+        </div>
+
+        <div class="buttons">
+          <button class="submit-btn primary" type="submit"> Submit </button>
+          <button class="clear-btn" onclick="clearImages()" type="reset">Clear Form</button>
+        </div>
+      </form>
+
+      <div aria-live="polite" class="message" id="message" role="status"></div>
+      <div class="company-footer">
+        <img alt="Company anniversary" onerror="this.style.display='none'" src="30 yrs.jpg" />
+      </div>
+    </section>
+
+    <!-- ================= ADMIN LOGIN ================= -->
+    <section class="card login-card hidden" id="adminLoginPanel">
+      <div>
+        <h2>Admin Login</h2>
+        <p class="muted">Sign in to view and manage all worker registrations.</p>
+        <div class="login-error" id="loginError" role="alert">Invalid Admin Username or Password</div>
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="adminUsername">Username</label>
+            <input autocomplete="username" id="adminUsername" placeholder="Enter admin username" required />
+          </div>
+          <div class="form-group">
+            <label for="adminPassword">Password</label>
+            <input autocomplete="current-password" id="adminPassword" placeholder="Enter admin password" required
+              type="password" />
+          </div>
+          <div class="admin-login-buttons">
+            <button class="purple admin-login-submit" type="submit">Login</button>
+            <button class="admin-login-cancel" onclick="cancelAdminLogin()" type="button">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- ================= ADMIN DASHBOARD ================= -->
+  <section aria-label="Administrator dashboard" id="adminPanel">
+    <div class="admin-content">
+      <div class="admin-header">
+        <div class="admin-title">
+          <h2>Workers Administration</h2>
+          <span class="badge" id="adminUserBadge">Admin</span>
+        </div>
+        <div class="camera-actions">
+          <button class="export-btn" onclick="exportExcel()">Download Excel</button>
+          <button class="secondary" onclick="exportBackup()">Backup (JSON)</button>
+          <button class="secondary" onclick="document.getElementById('restoreFile').click()">Restore Backup</button>
+          <button class="primary" onclick="refreshAdminData()">Refresh</button>
+          <button class="logout-btn" onclick="logout()">Logout</button>
+          <input accept=".json,application/json" class="file-input" id="restoreFile" type="file" />
+        </div>
+      </div>
+
+      <p class="hint" id="adminStatus" role="status">Loading records…</p>
+
+      <div class="dashboard-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total workers</div>
+          <div class="stat-value" id="statTotal">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Registered today</div>
+          <div class="stat-value" id="statToday">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Projects represented</div>
+          <div class="stat-value" id="statProjects">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Contractors represented</div>
+          <div class="stat-value" id="statContractors">0</div>
+        </div>
+      </div>
+
+      <div class="dashboard-lists">
+        <div class="mini-card">
+          <h3>Workers by project</h3>
+          <div class="mini-list" id="projectStats"></div>
+        </div>
+        <div class="mini-card">
+          <h3>Workers by designation</h3>
+          <div class="mini-list" id="designationStats"></div>
+        </div>
+        <div class="mini-card">
+          <h3>Workers by contractor</h3>
+          <div class="mini-list" id="contractorStats"></div>
+        </div>
+      </div>
+
+      <div class="admin-tools">
+        <div class="filter-row">
+          <input aria-label="Search worker records" class="search-field" id="searchInput"
+            placeholder="Search name, mobile, Aadhaar, state, address, project, contractor…" type="search" />
+          <select aria-label="Filter by project" id="projectFilter">
+            <option value="">All projects</option>
+          </select>
+          <select aria-label="Filter by designation" id="designationFilter">
+            <option value="">All designations</option>
+          </select>
+          <select aria-label="Filter by contractor" id="contractorFilter">
+            <option value="">All contractors</option>
+          </select>
+          <select aria-label="Sort records" id="sortFilter">
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="nameAsc">Worker name A–Z</option>
+            <option value="nameDesc">Worker name Z–A</option>
+            <option value="projectAsc">Project A–Z</option>
+          </select>
+        </div>
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <button class="secondary" onclick="resetFilters()">Reset filters</button>
+            <button class="secondary" onclick="printReport()">Print current view</button>
+          </div>
+          <div class="toolbar-right">
+            <span class="muted" id="resultCount">0 records</span>
+            <label class="muted" for="pageSize">Rows:</label>
+            <select aria-label="Rows per page" class="page-size" id="pageSize">
+              <option>10</option>
+              <option>25</option>
+              <option>50</option>
+              <option>100</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table id="workersTable">
+          <thead>
+            <tr>
+              <th>S.No.</th>
+              <th>Date</th>
+              <th>Project</th>
+              <th>Worker Name</th>
+              <th>DOB</th>
+              <th>Mobile</th>
+              <th>Emergency Contact</th>
+              <th>Designation</th>
+              <th>Supervisor Contact</th>
+              <th>Contractor</th>
+              <th>State</th>
+              <th>Aadhaar Address</th>
+              <th>Aadhaar Number</th>
+              <th>Aadhar Front</th>
+              <th>Aadhar Back</th>
+              <th>Worker Photo</th>
+              <th>Remarks</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="dataTable">
+            <tr>
+              <td class="no-data" colspan="17">Sign in to load records.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination">
+        <span id="pageSummary">Page 1 of 1</span>
+        <div class="page-controls">
+          <button class="secondary small-btn" id="firstPage" onclick="goToPage(1)">First</button>
+          <button class="secondary small-btn" id="prevPage" onclick="goToPage(currentPage-1)">Previous</button>
+          <span id="pageNumbers"></span>
+          <button class="secondary small-btn" id="nextPage" onclick="goToPage(currentPage+1)">Next</button>
+          <button class="secondary small-btn" id="lastPage" onclick="goToPage(totalPages)">Last</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CAMERA POP-UP ================= -->
+  <div aria-label="Camera" aria-modal="true" class="camera-modal" id="cameraModal" role="dialog">
+    <div class="camera-box">
+      <h3>Take a photo</h3>
+      <video autoplay id="cameraVideo" playsinline></video>
+      <canvas class="hidden" id="cameraCanvas"></canvas>
+      <p class="hint">Camera access needs HTTPS (or localhost) and your permission.</p>
+      <div class="camera-actions">
+        <button class="capture-btn" onclick="capturePhoto()" type="button">Capture Photo</button>
+        <button class="close-camera-btn" onclick="closeCamera()" type="button">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= IMAGE VIEWER ================= -->
+  <div aria-label="Image preview" aria-modal="true" class="image-viewer" id="imageViewer" onclick="closeImageViewer()"
+    role="dialog">
+    <span aria-label="Close image preview" class="close-viewer" role="button">×</span>
+    <img alt="Full image preview" id="viewerImage" onclick="event.stopPropagation()" />
+  </div>
+
+  <!-- ================= EDIT POP-UP ================= -->
+  <div aria-label="Edit worker record" aria-modal="true" class="edit-modal" id="editModal" role="dialog">
+    <div class="edit-box">
+      <h2>Edit Worker Record</h2>
+      <p class="muted">Leave an image unchanged to keep the currently stored image.</p>
+      <form id="editForm" novalidate>
+        <input id="editId" type="hidden" />
+        <div class="edit-grid">
+          <div class="form-group">
+            <label for="editProject">Project *</label>
+            <select id="editProject" required>
+              <option>EY-Global Kochi</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="editEmployeeName">Worker Name *</label>
+            <input id="editEmployeeName" maxlength="120" required />
+          </div>
+          <div class="form-group">
+            <label for="editDateOfBirth">Date of Birth *</label>
+            <input id="editDateOfBirth" required type="date" />
+          </div>
+          <div class="form-group">
+            <label for="editMobileNumber">Mobile Number *</label>
+            <input id="editMobileNumber" maxlength="10" pattern="[0-9]{10}" required />
+          </div>
+          <div class="form-group">
+            <label for="editEmergencyContact">Emergency Contact *</label>
+            <input id="editEmergencyContact" maxlength="10" pattern="[0-9]{10}" required />
+          </div>
+          <div class="form-group">
+            <label for="editDesignation">Designation *</label>
+            <select id="editDesignation" required>
+            <option>AC Technician</option>
+            <option>Fabricator</option>
+            <option>Assistant Mason</option>
+            <option>Bar Bender</option>
+            <option>Bar Bender-Helper</option>
+            <option>Billing Engineer</option>
+            <option>BMS Technician</option>
+            <option>Bricklayer</option>
+            <option>Cable Pulling Technician</option>
+            <option>Carpenter</option>
+            <option>Carpenter Helper</option>
+            <option>Civil Engineer</option>
+            <option>Civil Supervisor</option>
+            <option>Concrete Mixer Operator</option>
+            <option>Concrete Worker</option>
+            <option>Construction Manager</option>
+            <option>Crane Operator</option>
+            <option>Demolition Worker</option>
+            <option>Document Controller</option>
+            <option>Driver</option>
+            <option>Duct Installer</option>
+            <option>Electrical Engineer</option>
+            <option>Electrical Helper</option>
+            <option>Electrical Supervisor</option>
+            <option>Electrician</option>
+            <option>Electrician Helper</option>
+            <option>ELV Technician</option>
+            <option>Excavator Operator</option>
+            <option>False Ceiling Worker</option>
+            <option>Finishing Helper</option>
+            <option>Fire Alarm Technician</option>
+            <option>Fire Fighting Technician</option>
+            <option>Fitter</option>
+            <option>Flooring Installer</option>
+            <option>Flooring Worker</option>
+            <option>Foreman</option>
+            <option>Forklift Operator</option>
+            <option>Furniture Installer</option>
+            <option>General Construction Worker</option>
+            <option>General Foreman</option>
+            <option>General Helper</option>
+            <option>General Labourer</option>
+            <option>Glass Installer</option>
+            <option>Gypsum Board Installer</option>
+            <option>Helper</option>
+            <option>Housekeeping Helper</option>
+            <option>Housekeeping Staff</option>
+            <option>Housekeeping</option>
+            <option>Housekeeping Supervisor</option>
+            <option>HVAC Technician</option>
+            <option>Interior Carpenter</option>
+            <option>Interior Supervisor</option>
+            <option>JCB Operator</option>
+            <option>Loading and Unloading Worker</option>
+            <option>Machine Operator</option>
+            <option>Mason</option>
+            <option>Mason Helper</option>
+            <option>Material Coordinator</option>
+            <option>Material Handler</option>
+            <option>Mechanical Technician</option>
+            <option>MEP Supervisor</option>
+            <option>Modular Furniture Installer</option>
+            <option>Office Boy</option>
+            <option>Painter</option>
+            <option>Painter Helper</option>
+            <option>Partition Installer</option>
+            <option>Pipe Fitter</option>
+            <option>Planning Engineer</option>
+            <option>Plastering Worker</option>
+            <option>Plumber</option>
+            <option>Plumber Helper</option>
+            <option>Plumbing Helper</option>
+            <option>Plumbing Supervisor</option>
+            <option>Polishing Worker</option>
+            <option>POP Worker</option>
+            <option>Asst-Project Manager</option>
+            <option>Project Manager</option>
+            <option>Pump Operator</option>
+            <option>QA/QC Inspector</option>
+            <option>Quality Engineer</option>
+            <option>Quantity Surveyor</option>
+            <option>Safety Officer</option>
+            <option>Safety Steward</option>
+            <option>Safety Supervisor</option>
+            <option>Scaffolder</option>
+            <option>Scaffolding Helper</option>
+            <option>Security Guard</option>
+            <option>Security Supervisor</option>
+            <option>Shuttering Carpenter</option>
+            <option>Silicone Applicator</option>
+            <option>Site Administrator</option>
+            <option>Site Engineer</option>
+            <option>Site In-Charge</option>
+            <option>Site Supervisor</option>
+            <option>Steel Fixer</option>
+            <option>Storekeeper</option>
+            <option>Storekeeper-Helper</option>
+            <option>Supervisor</option>
+            <option>Surveyor</option>
+            <option>Technician</option>
+            <option>Tile Mason</option>
+            <option>Wallpaper Installer</option>
+            <option>Waterproofing Technician</option>
+            <option>Welder</option>
+            <option>Welder Helper</option>
+            <option>Welding Machine Operator</option>
+            <option>Wireman</option>
+            <option>Other's</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="editSupervisorContact">Supervisor Contact *</label>
+            <input id="editSupervisorContact" maxlength="10" pattern="[0-9]{10}" required />
+          </div>
+          
+          <div class="form-group">
+            <label for="editContractorAgency">Contractor *</label>
+            <select id="editContractorAgency" required>
+              <option>Arbion Info Services</option>
+              <option>Bushra Interiors</option>
+              <option>Cholo Ram Jaat furniture</option>
+              <option>Dharmendra</option>
+              <option>Hardware Galaxy</option>
+              <option>Henry & Farad Pvt.Ltd</option>
+              <option>Johnson controls</option>
+              <option>Limra</option>
+              <option>Lotus MEP Solution PVT LTD</option>
+              <option>MD Contracting</option>
+              <option>Munu Dev Rabha</option>
+              <option>Pappu Ram</option>
+              <option>Rajesh Contact</option>
+              <option>Royalguardian Security</option>
+              <option>Sree Vignesh</option>
+              <option>Stem Infra Project PVT LTD</option>
+              <option>Syncro Industries</option>
+              <option>Vinayl Installation</option>
+              <option>WGS Bangalore Tech</option>
+              <option>Other's</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="editState">State <span class="required">*</span></label>
+          <select id="editState" required>
+            <option value="">Choose</option>
+            <option>Andhra Pradesh</option>
+            <option>Arunachal Pradesh</option>
+            <option>Assam</option>
+            <option>Bihar</option>
+            <option>Chhattisgarh</option>
+            <option>Goa</option>
+            <option>Gujarat</option>
+            <option>Haryana</option>
+            <option>Himachal Pradesh</option>
+            <option>Jharkhand</option>
+            <option>Karnataka</option>
+            <option>Kerala</option>
+            <option>Madhya Pradesh</option>
+            <option>Maharashtra</option>
+            <option>Manipur</option>
+            <option>Meghalaya</option>
+            <option>Mizoram</option>
+            <option>Nagaland</option>
+            <option>Odisha</option>
+            <option>Punjab</option>
+            <option>Rajasthan</option>
+            <option>Sikkim</option>
+            <option>Tamil Nadu</option>
+            <option>Telangana</option>
+            <option>Tripura</option>
+            <option>Uttar Pradesh</option>
+            <option>Uttarakhand</option>
+            <option>West Bengal</option>
+            <option>Andaman and Nicobar Islands (UT)</option>
+            <option>Chandigarh (UT)</option>
+            <option>Dadra and Nagar Haveli and Daman and Diu (UT)</option>
+            <option>Delhi (National Capital Territory)</option>
+            <option>Jammu and Kashmir (UT)</option>
+            <option>Ladakh (UT)</option>
+            <option>Lakshadweep (UT)</option>
+            <option>Puducherry (UT)</option>
+            <option>other's</option>
+          </select>
+        </div>
+        
+
+        <div class="form-group">
+          <label for="editAadharAddress">Aadhaar Address <span class="required">*</span></label>
+          <textarea autocomplete="street-address" id="editAadharAddress" maxlength="500" placeholder="Enter the address printed on Aadhaar" required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="editAadharNumber">Aadhaar Number <span class="required">*</span></label>
+          <input id="editAadharNumber" inputmode="numeric" autocomplete="off" maxlength="12" pattern="[0-9]{12}" placeholder="Enter 12-digit Aadhaar number" required type="text" />
+        </div>
+
+        <div class="edit-images">
+          <div class="edit-image-card">
+            <strong>Aadhaar front</strong>
+            <img alt="Aadhaar front preview" id="editFrontPreview" />
+            <input accept="image/*" id="editFrontFile" type="file" />
+            <button class="small-btn secondary" onclick="clearEditImage('aadharFront')" type="button">Keep
+              existing</button>
+          </div>
+          <div class="edit-image-card">
+            <strong>Aadhaar back</strong>
+            <img alt="Aadhaar back preview" id="editBackPreview" />
+            <input accept="image/*" id="editBackFile" type="file" />
+            <button class="small-btn secondary" onclick="clearEditImage('aadharBack')" type="button">Keep
+              existing</button>
+          </div>
+          <div class="edit-image-card">
+            <strong>Worker photo</strong>
+            <img alt="Worker photo preview" id="editPhotoPreview" />
+            <input accept="image/*" id="editPhotoFile" type="file" />
+            <button class="small-btn secondary" onclick="clearEditImage('photoUpload')" type="button">Keep
+              existing</button>
+          </div>
+
+          <div class="form-group">
+          <label for="editRemarks">Remarks</label>
+          <textarea id="editRemarks" maxlength="1000"></textarea>
+        </div>
+
+        </div>
+
+        <div class="modal-actions" style="margin-top:18px">
+          <button class="primary" id="saveEditBtn" type="submit">Save Changes</button>
+          <button class="secondary" onclick="closeEditModal()" type="button">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div aria-live="polite" class="toast-region" id="toastRegion"></div>
+  <script>
+    'use strict';
+
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwrDkD4ZQV66Ba-YFNunVJH_qto8YsSnNIYp0uloiq_UKk9dQ2VRBP3uj6b7ZU3OczM/exec';
+
+
+    let adminToken = '';
+
+    async function api(action, payload) {
+      if (!WEB_APP_URL || WEB_APP_URL.indexOf('PASTE_') === 0) {
+        throw new Error('WEB_APP_URL is not set in index.html. Paste your Apps Script Web app URL.');
+      }
+      const body = JSON.stringify(Object.assign({ action: action, token: adminToken }, payload || {}));
+
+      let response;
+      try {
+        response = await fetch(WEB_APP_URL, { method: 'POST', body: body });
+      } catch (networkError) {
+        throw new Error('Cannot reach the server. Check your internet connection and the Web app URL.');
+      }
+
+      let result;
+      try {
+        result = JSON.parse(await response.text());
+      } catch (parseError) {
+        throw new Error('Server sent an unexpected reply. Check that the Web app is deployed with access "Anyone".');
+      }
+
+      if (!result.success) {
+        if (result.code === 'AUTH') handleSessionExpired();
+        throw new Error(result.message || 'Request failed.');
+      }
+      return result;
+    }
+
+    //
+    async function submitWorker(record) {
+      const result = await api('submitWorker', { record: record });
+      return { success: true, id: result.id };
+    }
+
+    async function adminLogin(username, password) {
+      const result = await api('adminLogin', { username: username, password: password });
+      adminToken = result.token;
+      return result;
+    }
+
+    async function adminLogout() {
+      if (!adminToken) return;
+      try { await api('adminLogout'); } catch (e) { /* ignore, we are leaving anyway */ }
+      adminToken = '';
+    }
+
+    async function getAllWorkers() {
+      const result = await api('getAllWorkers');
+      return result.workers;
+    }
+
+    async function updateWorker(changes) {
+      return await api('updateWorker', { record: changes });
+    }
+
+    async function deleteWorker(id) {
+      return await api('deleteWorker', { id: id });
+    }
+
+    async function restoreWorkers(list) {
+      return await api('restoreWorkers', { records: list });
+    }
+
+    /* ---- Images are private in Google Drive. We ask the server for them. ---- */
+    const thumbCache = {};   // fileId -> small preview (data URL)
+    const fullCache = {};    // fileId -> full size image (data URL)
+
+    // Fetches images for the given file IDs (in small groups) and stores them in the cache.
+    async function fetchImages(ids, size) {
+      const cache = size === 'thumb' ? thumbCache : fullCache;
+      const missing = [...new Set(ids.filter(id => id && !cache[id]))];
+      const groupSize = size === 'thumb' ? 12 : 4;
+      for (let i = 0; i < missing.length; i += groupSize) {
+        const group = missing.slice(i, i + groupSize);
+        const result = await api('getImages', { ids: group, size: size });
+        group.forEach(id => { if (result.images[id]) cache[id] = result.images[id]; });
+      }
+    }
+
+    /* =====================================================================
+       4. PAGE STATE AND SMALL HELPERS
+       ===================================================================== */
+    const form = document.getElementById('workerForm');
+    const IMAGE_IDS = ['aadharFront', 'aadharBack', 'photoUpload'];
+    const IMAGE_LABELS = { aadharFront: 'Aadhaar front', aadharBack: 'Aadhaar back', photoUpload: 'Worker photo' };
+
+    let cameraStream = null;
+    let cameraTarget = null;
+    let cachedRecords = [];
+    let filteredRecords = [];
+    let adminLoggedIn = false;
+    let currentPage = 1;
+    let totalPages = 1;
+    let editingRecord = null;
+
+    function byId(id) { return document.getElementById(id); }
+
+    // Sets text on an element only if it exists (some dashboard boxes are hidden/commented out).
+    function setText(id, text) {
+      const node = byId(id);
+      if (node) node.textContent = text;
+    }
+
+    // Today's date as yyyy-mm-dd in the user's own time zone.
+    function dateKey(date) {
+      const d = new Date(date);
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
+    function toast(message, type = 'success') {
+      const item = document.createElement('div');
+      item.className = 'toast ' + type;
+      item.textContent = message;
+      byId('toastRegion').appendChild(item);
+      setTimeout(() => item.remove(), 5000);
+    }
+
+    // Disable a button and change its text while work is happening.
+    function setBusy(button, busy, label) {
+      if (!button) return;
+      button.disabled = busy;
+      if (busy) {
+        if (button.dataset.originalText === undefined) button.dataset.originalText = button.textContent;
+        button.textContent = label || 'Please wait…';
+      } else {
+        button.textContent = button.dataset.originalText || button.textContent;
+        delete button.dataset.originalText;
+      }
+    }
+
+    function showMessage(message, ok) {
+      const node = byId('message');
+      node.textContent = message;
+      node.className = 'message ' + (ok ? 'success' : 'error');
+      node.style.display = 'block';
+      node.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    function clearMessage() {
+      const node = byId('message');
+      node.style.display = 'none';
+      node.textContent = '';
+      node.className = 'message';
+    }
+
+    /* =====================================================================
+       5. CAMERA AND IMAGE HANDLING
+       ===================================================================== */
+    // Fallback: opens the phone's camera app (or the file picker on a computer).
+    function openCameraWithFileInput(targetId, cameraType) {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.capture = cameraType;
+      input.onchange = () => selectFile(input, targetId);
+      input.click();
+    }
+
+    async function openCamera(targetId, cameraType) {
+      cameraTarget = targetId;
+
+      // No live camera available (not HTTPS, old browser...) -> use the fallback.
+      if (!window.isSecureContext || !navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+        openCameraWithFileInput(targetId, cameraType);
+        return;
+      }
+
+      closeCamera();
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: cameraType }, width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false
+        });
+        const video = byId('cameraVideo');
+        video.srcObject = cameraStream;
+        byId('cameraModal').style.display = 'flex';
+        await video.play();
+      } catch (error) {
+        console.error('Camera error:', error);
+        closeCamera();
+        if (error && (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError')) {
+          toast('Camera permission was denied. Allow camera access in browser settings.', 'error');
+        } else {
+          openCameraWithFileInput(targetId, cameraType);
+        }
+      }
+    }
+
+    function capturePhoto() {
+      const video = byId('cameraVideo');
+      const canvas = byId('cameraCanvas');
+      if (!cameraTarget || !video.videoWidth || !video.videoHeight) {
+        toast('Camera is not ready. Wait for the preview, then capture again.', 'error');
+        return;
+      }
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+      setImageData(cameraTarget, canvas.toDataURL('image/jpeg', 0.72));
+      closeCamera();
+      toast(IMAGE_LABELS[cameraTarget] + ' captured successfully.');
+    }
+
+    function closeCamera() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+      }
+      byId('cameraVideo').srcObject = null;
+      byId('cameraModal').style.display = 'none';
+    }
+
+    // Checks a chosen file, shrinks it, then shows the preview.
+    function selectFile(input, targetId) {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) { toast('Please select an image file.', 'error'); input.value = ''; return; }
+      if (file.size > 12 * 1024 * 1024) { toast('Choose an image smaller than 12 MB.', 'error'); input.value = ''; return; }
+      compressImageFile(file)
+        .then(data => setImageData(targetId, data))
+        .catch(() => { toast('Unable to read this image. Choose a JPG or PNG file.', 'error'); input.value = ''; });
+    }
+
+    // Shrinks big photos (max 1400px, JPEG) so uploads are fast and Drive/Excel stay small.
+    function compressImageFile(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('Read failed'));
+        reader.onload = () => {
+          const img = new Image();
+          img.onerror = () => reject(new Error('Image failed'));
+          img.onload = () => {
+            const scale = Math.min(1, 1400 / Math.max(img.naturalWidth, img.naturalHeight));
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+            canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+            canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/jpeg', 0.72));
+          };
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Saves image data into the hidden input and shows a preview with a Remove button.
+    function setImageData(id, data) {
+      byId(id).value = data;
+      const preview = byId(id + 'Preview');
+      preview.replaceChildren();
+      const img = document.createElement('img');
+      img.src = data;
+      img.alt = IMAGE_LABELS[id] || id;
+      img.onclick = () => openImageViewer(data);
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.textContent = 'Remove';
+      remove.className = 'danger small-btn';
+      remove.onclick = () => removeImage(id);
+      preview.append(img, remove);
+    }
+
+    function removeImage(id) {
+      byId(id).value = '';
+      byId(id + 'Preview').replaceChildren();
+      const file = byId(id + 'File');
+      if (file) file.value = '';
+    }
+    function clearImages() { IMAGE_IDS.forEach(removeImage); clearMessage(); }
+
+    /* =====================================================================
+       6. REGISTRATION FORM
+       ===================================================================== */
+    function getFormRecord() {
+      return {
+        project: byId('project').value,
+        employeeName: byId('employeeName').value.trim(),
+        dateOfBirth: byId('dateOfBirth').value,
+        mobileNumber: byId('mobileNumber').value.trim(),
+        emergencyContact: byId('emergencyContact').value.trim(),
+        designation: byId('designation').value,
+        supervisorContact: byId('supervisorContact').value.trim(),
+        contractorAgency: byId('contractorAgency').value,
+        state: byId('state').value,
+        aadharAddress: byId('aadharAddress').value.trim(),
+        aadharNumber: byId('aadharNumber').value.replace(/\D/g, ''),
+        aadharFront: byId('aadharFront').value,
+        aadharBack: byId('aadharBack').value,
+        photoUpload: byId('photoUpload').value,
+        remarks: byId('remarks').value.trim()
+      };
+    }
+
+    // Returns an error text, or '' when everything is fine.
+    function validateRecord(record, requireImages) {
+      const required = ['project', 'employeeName', 'dateOfBirth', 'mobileNumber', 'emergencyContact', 'designation', 'supervisorContact', 'contractorAgency', 'state', 'aadharAddress', 'aadharNumber'];
+      for (const key of required) if (!record[key]) return 'Please complete all required fields.';
+      if (!/^\d{12}$/.test(record.aadharNumber)) return 'Aadhaar number must contain exactly 12 digits.';
+      for (const key of ['mobileNumber', 'emergencyContact', 'supervisorContact'])
+        if (!/^\d{10}$/.test(record[key])) return 'Mobile, emergency and supervisor numbers must be exactly 10 digits.';
+      if (record.dateOfBirth > dateKey(new Date())) return 'Date of birth cannot be in the future.';
+      if (requireImages && IMAGE_IDS.some(key => !record[key])) return 'Please take or upload all three required images.';
+      return '';
+    }
+
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      clearMessage();
+      const record = getFormRecord();
+      const error = validateRecord(record, true);
+      if (error) { showMessage(error, false); return; }
+
+      const button = form.querySelector('.submit-btn');
+      setBusy(button, true, 'Submitting…');
+      try {
+        const result = await submitWorker(record);
+        form.reset();
+        clearImages();
+        showMessage('Worker registration submitted successfully. Registration ID: ' + result.id, true);
+      } catch (err) {
+        console.error(err);
+        showMessage('Submission failed: ' + (err.message || err), false);
+      } finally {
+        setBusy(button, false);
+      }
+    });
+
+    /* =====================================================================
+       7. ADMIN LOGIN / LOGOUT
+       ===================================================================== */
+    function showAdminLogin() {
+      byId('formPanel').classList.add('hidden');
+      byId('adminLoginPanel').classList.remove('hidden');
+      byId('loginError').style.display = 'none';
+      byId('adminUsername').focus();
+    }
+    function cancelAdminLogin() {
+      byId('adminLoginPanel').classList.add('hidden');
+      byId('formPanel').classList.remove('hidden');
+    }
+
+    byId('loginForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const username = byId('adminUsername').value.trim();
+      const password = byId('adminPassword').value;
+      const button = byId('loginForm').querySelector('.admin-login-submit');
+
+      setBusy(button, true, 'Signing in…');
+      try {
+        await adminLogin(username, password);
+      } catch (err) {
+        byId('loginError').textContent = err.message || 'Invalid Admin Username or Password';
+        byId('loginError').style.display = 'block';
+        byId('adminPassword').value = '';
+        return;
+      } finally {
+        setBusy(button, false);
+      }
+
+      adminLoggedIn = true;
+      byId('adminUserBadge').textContent = username;
+      byId('adminLoginPanel').classList.add('hidden');
+      byId('adminPanel').style.display = 'block';
+      document.body.classList.add('admin-mode');
+      byId('adminPassword').value = '';
+      refreshAdminData();
+    });
+
+    function logout() {
+      adminLogout();   // tell the server to forget our token (runs in background)
+      adminLoggedIn = false;
+      cachedRecords = [];
+      filteredRecords = [];
+      Object.keys(thumbCache).forEach(key => delete thumbCache[key]);
+      Object.keys(fullCache).forEach(key => delete fullCache[key]);
+      closeEditModal();
+      closeImageViewer();
+      byId('adminPanel').style.display = 'none';
+      byId('adminLoginPanel').classList.add('hidden');
+      byId('formPanel').classList.remove('hidden');
+      document.body.classList.remove('admin-mode');
+      byId('adminPassword').value = '';
+      byId('adminUsername').value = '';
+    }
+
+    // Called automatically when the server says our login has expired.
+    function handleSessionExpired() {
+      if (!adminLoggedIn) return;
+      adminToken = '';
+      logout();
+      toast('Your admin session expired. Please sign in again.', 'error');
+      showAdminLogin();
+    }
+
+    /* =====================================================================
+       8. ADMIN DATA, DASHBOARD, FILTERS, TABLE
+       ===================================================================== */
+    async function refreshAdminData() {
+      if (!adminLoggedIn) return;
+      byId('adminStatus').textContent = 'Loading worker records…';
+      try {
+        cachedRecords = await getAllWorkers();
+        fillFilterOptions();
+        applyFilters();
+        updateDashboard();
+        byId('adminStatus').textContent = 'Records loaded: ' + cachedRecords.length + ' · Last refreshed ' + new Date().toLocaleTimeString();
+      } catch (err) {
+        byId('adminStatus').textContent = 'Could not load records: ' + (err.message || err);
+      }
+    }
+
+    function countBy(records, key) {
+      const out = {};
+      records.forEach(record => {
+        const name = record[key] || 'Not specified';
+        out[name] = (out[name] || 0) + 1;
+      });
+      return out;
+    }
+
+    // Every box is optional, so the page still works if you hide some of them in the HTML.
+    function updateDashboard() {
+      setText('statTotal', cachedRecords.length);
+      const today = dateKey(new Date());
+      setText('statToday', cachedRecords.filter(r => r.date && dateKey(r.date) === today).length);
+
+      const projects = countBy(cachedRecords, 'project');
+      const designations = countBy(cachedRecords, 'designation');
+      const contractors = countBy(cachedRecords, 'contractorAgency');
+      setText('statProjects', Object.keys(projects).length);
+      setText('statContractors', Object.keys(contractors).length);
+      renderMiniList('projectStats', projects);
+      renderMiniList('designationStats', designations);
+      renderMiniList('contractorStats', contractors);
+    }
+
+    function renderMiniList(id, counts) {
+      const container = byId(id);
+      if (!container) return;   // list is hidden in the HTML
+      container.replaceChildren();
+      const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+      if (!entries.length) {
+        const empty = document.createElement('span');
+        empty.className = 'muted';
+        empty.textContent = 'No records';
+        container.appendChild(empty);
+        return;
+      }
+      entries.slice(0, 30).forEach(([name, count]) => {
+        const line = document.createElement('div');
+        const label = document.createElement('span');
+        const value = document.createElement('strong');
+        label.textContent = name;
+        value.textContent = count;
+        line.append(label, value);
+        container.appendChild(line);
+      });
+    }
+
+    // Fills the three filter drop-downs with the values that exist in the data.
+    function fillFilterOptions() {
+      const specs = [
+        ['projectFilter', 'project', 'All projects'],
+        ['designationFilter', 'designation', 'All designations'],
+        ['contractorFilter', 'contractorAgency', 'All contractors']
+      ];
+      specs.forEach(([id, key, placeholder]) => {
+        const select = byId(id);
+        const current = select.value;
+        const values = [...new Set(cachedRecords.map(r => r[key]).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+        select.replaceChildren(new Option(placeholder, ''));
+        values.forEach(value => select.add(new Option(value, value)));
+        if (values.includes(current)) select.value = current;
+      });
+    }
+
+    function applyFilters() {
+      const query = byId('searchInput').value.trim().toLowerCase();
+      const project = byId('projectFilter').value;
+      const designation = byId('designationFilter').value;
+      const contractor = byId('contractorFilter').value;
+      const sort = byId('sortFilter').value;
+
+      filteredRecords = cachedRecords.filter(record => {
+        const searchable = [record.id, record.date, record.project, record.employeeName, record.dateOfBirth,
+        record.mobileNumber, record.emergencyContact, record.designation, record.supervisorContact,
+        record.contractorAgency, record.state, record.aadharAddress, record.aadharNumber, record.remarks].join(' ').toLowerCase();
+        return (!query || searchable.includes(query)) &&
+          (!project || record.project === project) &&
+          (!designation || record.designation === designation) &&
+          (!contractor || record.contractorAgency === contractor);
+      });
+
+      filteredRecords.sort((a, b) => {
+        if (sort === 'nameAsc') return String(a.employeeName).localeCompare(String(b.employeeName));
+        if (sort === 'nameDesc') return String(b.employeeName).localeCompare(String(a.employeeName));
+        if (sort === 'projectAsc') return String(a.project).localeCompare(String(b.project));
+        const da = Date.parse(a.date) || 0, db = Date.parse(b.date) || 0;
+        return sort === 'oldest' ? da - db : db - da;
+      });
+
+      currentPage = 1;
+      renderTable();
+    }
+
+    ['searchInput', 'projectFilter', 'designationFilter', 'contractorFilter', 'sortFilter', 'pageSize'].forEach(id => {
+      byId(id).addEventListener(id === 'searchInput' ? 'input' : 'change', () => {
+        if (id === 'pageSize') { currentPage = 1; renderTable(); }
+        else applyFilters();
+      });
+    });
+
+    function resetFilters() {
+      byId('searchInput').value = '';
+      ['projectFilter', 'designationFilter', 'contractorFilter'].forEach(id => byId(id).value = '');
+      byId('sortFilter').value = 'newest';
+      applyFilters();
+    }
+
+    function renderTable() {
+      const size = Number(byId('pageSize').value) || 10;
+      totalPages = Math.max(1, Math.ceil(filteredRecords.length / size));
+      if (currentPage > totalPages) currentPage = totalPages;
+
+      const start = (currentPage - 1) * size;
+      const rows = filteredRecords.slice(start, start + size);
+      const tbody = byId('dataTable');
+      tbody.replaceChildren();
+      byId('resultCount').textContent = filteredRecords.length + ' matching record' + (filteredRecords.length === 1 ? '' : 's');
+
+      if (!rows.length) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 18;
+        td.className = 'no-data';
+        td.textContent = 'No worker records match these filters.';
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+      } else {
+        rows.forEach((record, index) => tbody.appendChild(createRecordRow(record, start + index + 1)));
+        loadVisibleThumbnails();   // fetch the small pictures for this page only
+      }
+
+      byId('pageSummary').textContent = 'Page ' + currentPage + ' of ' + totalPages;
+      ['firstPage', 'prevPage'].forEach(id => byId(id).disabled = currentPage <= 1);
+      ['nextPage', 'lastPage'].forEach(id => byId(id).disabled = currentPage >= totalPages);
+
+      const label = document.createElement('span');
+      label.className = 'muted';
+      label.textContent = filteredRecords.length
+        ? (start + 1) + '–' + Math.min(start + size, filteredRecords.length) + ' of ' + filteredRecords.length
+        : '0 results';
+      byId('pageNumbers').replaceChildren(label);
+    }
+
+    function createRecordRow(record, serialNumber) {
+      const tr = document.createElement('tr');
+
+      // Serial number follows the current filtered/sorted list and starts at 1.
+      const serialCell = document.createElement('td');
+      serialCell.textContent = String(serialNumber);
+      tr.appendChild(serialCell);
+
+      // Plain text columns
+      [formatTimestamp(record.date), record.project, record.employeeName, record.dateOfBirth,
+      record.mobileNumber, record.emergencyContact, record.designation, record.supervisorContact,
+      record.contractorAgency, record.state, record.aadharAddress, record.aadharNumber].forEach(value => {
+        const td = document.createElement('td');
+        td.textContent = value || '';
+        tr.appendChild(td);
+      });
+
+      // Image columns (the picture itself is loaded a moment later from Drive)
+      [['aadharFront', 'Aadhaar front'], ['aadharBack', 'Aadhaar back'], ['photoUpload', 'Worker photo']].forEach(([key, label]) => {
+        const td = document.createElement('td');
+        const fileId = record[key];
+        if (fileId) {
+          const image = document.createElement('img');
+          image.className = 'worker-image';
+          image.alt = label;
+          image.dataset.fileId = fileId;
+          if (thumbCache[fileId]) image.src = thumbCache[fileId];
+          image.onclick = () => openImageViewer(fileId);
+          td.appendChild(image);
+        } else {
+          td.textContent = 'No image';
+          td.className = 'muted';
+        }
+        tr.appendChild(td);
+      });
+
+      // Remarks
+      const remarks = document.createElement('td');
+      remarks.textContent = record.remarks || '';
+      remarks.title = record.remarks || '';
+      remarks.style.maxWidth = '220px';
+      remarks.style.overflow = 'hidden';
+      remarks.style.textOverflow = 'ellipsis';
+      tr.appendChild(remarks);
+
+      // Edit / Delete buttons
+      const actions = document.createElement('td');
+      const wrap = document.createElement('div');
+      wrap.className = 'row-actions';
+      const edit = document.createElement('button');
+      edit.className = 'primary';
+      edit.textContent = 'Edit';
+      edit.onclick = () => openEditModal(record.id);
+      const remove = document.createElement('button');
+      remove.className = 'delete-btn';
+      remove.textContent = 'Delete';
+      remove.onclick = () => deleteRecord(record.id);
+      wrap.append(edit, remove);
+      actions.appendChild(wrap);
+      tr.appendChild(actions);
+      return tr;
+    }
+
+    // Looks at the table on screen, downloads any missing thumbnails, then shows them.
+    async function loadVisibleThumbnails() {
+      const pending = Array.from(document.querySelectorAll('#dataTable img[data-file-id]')).filter(img => !img.getAttribute('src'));
+      if (!pending.length) return;
+      try {
+        await fetchImages(pending.map(img => img.dataset.fileId), 'thumb');
+      } catch (err) {
+        console.error(err);
+        toast('Could not load some images: ' + (err.message || err), 'error');
+        return;
+      }
+      // Rows may have changed while we waited, so look up the images again.
+      document.querySelectorAll('#dataTable img[data-file-id]').forEach(img => {
+        const data = thumbCache[img.dataset.fileId];
+        if (data && !img.getAttribute('src')) img.src = data;
+      });
+    }
+
+    function formatTimestamp(value) {
+      if (!value) return '';
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? String(value).slice(0, 10) : date.toLocaleString();
+    }
+
+    function goToPage(page) {
+      currentPage = Math.min(totalPages, Math.max(1, Number(page) || 1));
+      renderTable();
+    }
+
+    async function deleteRecord(id) {
+      const record = cachedRecords.find(item => item.id === id);
+      if (!record) return;
+      if (!confirm('Permanently delete the record for ' + record.employeeName + ' and its stored images? This cannot be undone.')) return;
+      try {
+        const result = await deleteWorker(id);
+        toast(result.message);
+        refreshAdminData();
+      } catch (err) {
+        toast('Delete failed: ' + (err.message || err), 'error');
+      }
+    }
+
+    /* =====================================================================
+       9. IMAGE VIEWER, PRINT, EXCEL, BACKUP
+       ===================================================================== */
+    // "source" can be a data URL (new photo on the form) or a Drive file ID (saved photo).
+    async function openImageViewer(source) {
+      if (!source) return;
+      const viewer = byId('viewerImage');
+      const isDataUrl = source.indexOf('data:') === 0;
+
+      viewer.src = isDataUrl ? source : (fullCache[source] || thumbCache[source] || '');
+      byId('imageViewer').style.display = 'flex';
+
+      if (!isDataUrl && !fullCache[source]) {
+        try {
+          await fetchImages([source], 'full');
+          // Only update if the viewer is still open for this same image.
+          if (byId('imageViewer').style.display === 'flex' && fullCache[source]) viewer.src = fullCache[source];
+        } catch (err) {
+          toast('Could not load the full image: ' + (err.message || err), 'error');
+        }
+      }
+    }
+    function closeImageViewer() {
+      byId('imageViewer').style.display = 'none';
+      byId('viewerImage').removeAttribute('src');
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+    }
+
+    function printReport() {
+      const table = byId('workersTable').cloneNode(true);
+      const actionIndex = 13; // remove the "Action" column
+      Array.from(table.rows).forEach(row => { if (row.cells.length > actionIndex) row.deleteCell(actionIndex); });
+      const popup = window.open('', '_blank', 'width=1100,height=800');
+      if (!popup) { toast('Allow pop-ups to print the report.', 'error'); return; }
+      popup.document.write('<!doctype html><html><head><title>Workers Report</title><style>body{font-family:Arial;padding:20px}h1{font-size:20px}table{border-collapse:collapse;width:100%;font-size:10px}th,td{border:1px solid #aaa;padding:5px;text-align:left}th{background:#1f4e78;color:white}img{width:45px;height:45px;object-fit:contain}</style></head><body><h1>Ocean Lifespaces — Workers Report</h1><p>Printed: ' + escapeHtml(new Date().toLocaleString()) + '</p>' + table.outerHTML + '</body></html>');
+      popup.document.close();
+      popup.focus();
+      popup.print();
+    }
+
+    // Turns "data:image/jpeg;base64,AAAA" into bytes that ExcelJS can use.
+    function dataUrlToBuffer(dataUrl) {
+      const parts = dataUrl.split(',');
+      if (parts.length !== 2) throw new Error('Invalid image data');
+      const mime = (parts[0].match(/data:(.*?);base64/) || [])[1] || 'image/jpeg';
+      const binary = atob(parts[1]);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      return { buffer: bytes, extension: mime.includes('png') ? 'png' : 'jpeg' };
+    }
+
+    // Starts a file download in the browser.
+    function downloadBlob(blob, fileName) {
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = fileName;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    }
+
+    async function exportExcel() {
+      if (!adminLoggedIn) { toast('Please sign in again.', 'error'); return; }
+      if (!filteredRecords.length) { toast('No records in the current view to export.', 'error'); return; }
+      if (typeof ExcelJS === 'undefined') { toast('Excel library did not load. Check the internet connection.', 'error'); return; }
+
+      const button = document.querySelector('.export-btn');
+      setBusy(button, true, 'Downloading images…');
+      try {
+        // 1. Get the full-size pictures from Drive (a few at a time).
+        const ids = [];
+        filteredRecords.forEach(record => IMAGE_IDS.forEach(key => { if (record[key]) ids.push(record[key]); }));
+        const missing = ids.filter(id => !fullCache[id]);
+        for (let i = 0; i < missing.length; i += 4) {
+          setBusy(button, true, 'Images ' + Math.min(i + 4, missing.length) + '/' + missing.length + '…');
+          await fetchImages(missing.slice(i, i + 4), 'full');
+        }
+
+        // 2. Build the workbook.
+        setBusy(button, true, 'Preparing Excel…');
+        const workbook = new ExcelJS.Workbook();
+        workbook.creator = 'Ocean Lifespaces India Private Limited';
+        workbook.created = new Date();
+        const sheet = workbook.addWorksheet('Workers', { views: [{ state: 'frozen', ySplit: 1 }] });
+
+        sheet.columns = [
+          { header: 'S.No.', key: 'serialNo', width: 10 },
+          { header: 'Registration Date', key: 'date', width: 24 },
+          { header: 'Project', key: 'project', width: 24 },
+          { header: 'Worker Name', key: 'employeeName', width: 25 },
+          { header: 'Date of Birth', key: 'dateOfBirth', width: 16 },
+          { header: 'Mobile Number', key: 'mobileNumber', width: 17 },
+          { header: 'Emergency Contact', key: 'emergencyContact', width: 20 },
+          { header: 'Designation', key: 'designation', width: 23 },
+          { header: 'Supervisor Contact', key: 'supervisorContact', width: 22 },
+          { header: 'Contractor Agency', key: 'contractorAgency', width: 30 },
+          { header: 'State', key: 'state', width: 22 },
+          { header: 'Aadhaar Address', key: 'aadharAddress', width: 42 },
+          { header: 'Aadhaar Number', key: 'aadharNumber', width: 20 },
+          { header: 'Aadhaar Front', key: 'front', width: 19 },
+          { header: 'Aadhaar Back', key: 'back', width: 19 },
+          { header: 'Worker Photo', key: 'photo', width: 19 },
+          { header: 'Remarks', key: 'remarks', width: 32 }
+        ];
+
+        const header = sheet.getRow(1);
+        header.height = 28;
+        header.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        header.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+        header.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+
+        for (let index = 0; index < filteredRecords.length; index++) {
+          const record = filteredRecords[index];
+          const rowNumber = index + 2;
+          sheet.addRow({
+            serialNo: index + 1,
+            date: formatTimestamp(record.date), project: record.project, employeeName: record.employeeName,
+            dateOfBirth: record.dateOfBirth, mobileNumber: String(record.mobileNumber || ''),
+            emergencyContact: String(record.emergencyContact || ''), designation: record.designation,
+            supervisorContact: String(record.supervisorContact || ''), contractorAgency: record.contractorAgency,
+            state: record.state || '', aadharAddress: record.aadharAddress || '',
+            aadharNumber: String(record.aadharNumber || ''), remarks: record.remarks
+          });
+          const row = sheet.getRow(rowNumber);
+          row.height = 72;
+          row.alignment = { vertical: 'middle', wrapText: true };
+
+          // S.No. adds one column, so image columns are now 14, 15 and 16 (zero-based 13, 14, 15).
+          for (const [key, col] of [['aadharFront', 13], ['aadharBack', 14], ['photoUpload', 15]]) {
+            if (!record[key]) continue;
+            try {
+              const parsed = dataUrlToBuffer(fullCache[record[key]]);
+              const imageId = workbook.addImage({ buffer: parsed.buffer, extension: parsed.extension });
+              sheet.addImage(imageId, { tl: { col: col, row: rowNumber - 1 }, br: { col: col + 1, row: rowNumber }, editAs: 'oneCell' });
+            } catch (error) {
+              sheet.getCell(rowNumber, col + 1).value = 'Image unavailable';
+            }
+          }
+        }
+
+        sheet.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: 17 } };
+        const buffer = await workbook.xlsx.writeBuffer();
+        downloadBlob(
+          new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+          'Ocean_Lifespaces_Workers_' + dateKey(new Date()) + '.xlsx'
+        );
+        toast('Excel report created with images for ' + filteredRecords.length + ' records.');
+      } catch (error) {
+        console.error(error);
+        toast('Excel export failed: ' + (error.message || 'try exporting fewer records.'), 'error');
+      } finally {
+        setBusy(button, false);
+      }
+    }
+
+    // BACKUP: saves every record's text and image IDs into one JSON file.
+    // (Photos themselves stay safely in your Google Drive folder.)
+    async function exportBackup() {
+      try {
+        const all = await getAllWorkers();
+        if (!all.length) { toast('There are no records to back up.', 'error'); return; }
+        downloadBlob(new Blob([JSON.stringify(all, null, 2)], { type: 'application/json' }), 'Ocean_Workers_Backup_' + dateKey(new Date()) + '.json');
+        toast('Backup downloaded (' + all.length + ' records).');
+      } catch (err) {
+        toast('Backup failed: ' + (err.message || err), 'error');
+      }
+    }
+
+    // RESTORE: loads a backup file; records with the same ID are overwritten.
+    byId('restoreFile').addEventListener('change', async event => {
+      const file = event.target.files[0];
+      if (!file) return;
+      try {
+        const list = JSON.parse(await file.text());
+        if (!Array.isArray(list)) throw new Error('Not a valid backup file.');
+        const result = await restoreWorkers(list);
+        toast(result.message || 'Backup restored.');
+        refreshAdminData();
+      } catch (err) {
+        toast('Restore failed: ' + (err.message || err), 'error');
+      }
+      event.target.value = '';
+    });
+
+    /* =====================================================================
+       10. EDIT POP-UP
+       ===================================================================== */
+    const EDIT_IMAGES = {
+      aadharFront: { preview: 'editFrontPreview', file: 'editFrontFile' },
+      aadharBack: { preview: 'editBackPreview', file: 'editBackFile' },
+      photoUpload: { preview: 'editPhotoPreview', file: 'editPhotoFile' }
+    };
+
+    // Shows the saved picture of one image slot in the edit pop-up.
+    function showStoredEditImage(key) {
+      const preview = byId(EDIT_IMAGES[key].preview);
+      const fileId = editingRecord ? editingRecord[key] : '';
+      if (!fileId) { preview.removeAttribute('src'); return; }
+      if (thumbCache[fileId]) { preview.src = thumbCache[fileId]; return; }
+      preview.removeAttribute('src');
+      fetchImages([fileId], 'thumb').then(() => {
+        // Only fill it in if this record is still open and no new image was chosen.
+        if (editingRecord && editingRecord[key] === fileId && !preview.dataset.newImage && thumbCache[fileId]) {
+          preview.src = thumbCache[fileId];
+        }
+      }).catch(() => { });
+    }
+
+    function openEditModal(id) {
+      const record = cachedRecords.find(item => item.id === id);
+      if (!record) return;
+      editingRecord = record;
+
+      byId('editId').value = record.id;
+      byId('editProject').value = record.project || '';
+      byId('editEmployeeName').value = record.employeeName || '';
+      byId('editDateOfBirth').value = record.dateOfBirth || '';
+      byId('editMobileNumber').value = record.mobileNumber || '';
+      byId('editEmergencyContact').value = record.emergencyContact || '';
+      byId('editDesignation').value = record.designation || '';
+      byId('editSupervisorContact').value = record.supervisorContact || '';
+      byId('editContractorAgency').value = record.contractorAgency || '';
+      byId('editState').value = record.state || '';
+      byId('editAadharAddress').value = record.aadharAddress || '';
+      byId('editAadharNumber').value = record.aadharNumber || '';
+      byId('editRemarks').value = record.remarks || '';
+
+      // Show the current images and forget any new image from a previous edit.
+      Object.keys(EDIT_IMAGES).forEach(key => {
+        delete byId(EDIT_IMAGES[key].preview).dataset.newImage;
+        byId(EDIT_IMAGES[key].file).value = '';
+        showStoredEditImage(key);
+      });
+      byId('editModal').style.display = 'flex';
+    }
+
+    function closeEditModal() {
+      byId('editModal').style.display = 'none';
+      editingRecord = null;
+    }
+
+    // "Keep existing" button: throw away the new image and show the old one again.
+    function clearEditImage(key) {
+      const ids = EDIT_IMAGES[key];
+      delete byId(ids.preview).dataset.newImage;
+      byId(ids.file).value = '';
+      showStoredEditImage(key);
+    }
+
+    // When a new image is chosen in the edit pop-up.
+    Object.entries(EDIT_IMAGES).forEach(([key, ids]) => {
+      byId(ids.file).addEventListener('change', event => {
+        const file = event.target.files[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) { toast('Select a valid image file.', 'error'); event.target.value = ''; return; }
+        if (file.size > 12 * 1024 * 1024) { toast('Choose an image smaller than 12 MB.', 'error'); event.target.value = ''; return; }
+        compressImageFile(file)
+          .then(data => {
+            byId(ids.preview).src = data;
+            byId(ids.preview).dataset.newImage = data;
+          })
+          .catch(() => toast('Could not read selected image.', 'error'));
+      });
+    });
+
+    byId('editForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      if (!editingRecord) return;
+
+      const record = {
+        id: byId('editId').value,
+        project: byId('editProject').value,
+        employeeName: byId('editEmployeeName').value.trim(),
+        dateOfBirth: byId('editDateOfBirth').value,
+        mobileNumber: byId('editMobileNumber').value.trim(),
+        emergencyContact: byId('editEmergencyContact').value.trim(),
+        designation: byId('editDesignation').value,
+        supervisorContact: byId('editSupervisorContact').value.trim(),
+        contractorAgency: byId('editContractorAgency').value,
+        state: byId('editState').value,
+        aadharAddress: byId('editAadharAddress').value.trim(),
+        aadharNumber: byId('editAadharNumber').value.replace(/\D/g, ''),
+        remarks: byId('editRemarks').value.trim()
+      };
+      const error = validateRecord(record, false);
+      if (error) { toast(error, 'error'); return; }
+
+      // Only send images that were replaced; the server keeps the others.
+      Object.entries(EDIT_IMAGES).forEach(([key, ids]) => {
+        const newImage = byId(ids.preview).dataset.newImage;
+        if (newImage) record[key] = newImage;
+      });
+
+      const button = byId('saveEditBtn');
+      setBusy(button, true, 'Saving…');
+      try {
+        const result = await updateWorker(record);
+        toast(result.message || 'Worker record updated.');
+        closeEditModal();
+        refreshAdminData();
+      } catch (err) {
+        toast('Update failed: ' + (err.message || err), 'error');
+      } finally {
+        setBusy(button, false);
+      }
+    });
+
+    /* =====================================================================
+       11. KEYBOARD AND CLEAN-UP
+       ===================================================================== */
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') { closeCamera(); closeImageViewer(); closeEditModal(); }
+    });
+    window.addEventListener('beforeunload', closeCamera);
+  </script>
+</body>
+
+</html>
